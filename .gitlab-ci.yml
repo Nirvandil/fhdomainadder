@@ -1,0 +1,2 @@
+deploy:
+  - mvn clean install
