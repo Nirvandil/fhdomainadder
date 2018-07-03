@@ -1,3 +1,5 @@
+before_script:
+  - yum install -y bzip2
 deploy:
   script:
     - mvn clean install
