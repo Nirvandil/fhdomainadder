@@ -1,2 +1,3 @@
 deploy:
-  - mvn clean install
+  script:
+    - mvn clean install
