@@ -136,3 +136,4 @@ jspm_packages/
 .next
 
 /backend/src/main/resources/public/
+/frontend/node/
