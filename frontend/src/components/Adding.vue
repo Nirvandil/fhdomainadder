@@ -66,13 +66,13 @@
                                 </md-field>
                                 <div v-if="progressCf">
                                     <md-progress-bar :md-indeterminate='false'
-                                                     :md-progress-bar="progressCf"></md-progress-bar>
+                                                     :md-value="progressCf"></md-progress-bar>
                                     <md-tooltip md-delay="1000">Прогресс добавления в CloudFlare</md-tooltip>
                                 </div>
                                 <md-divider v-if="progressCf || progressPanel"></md-divider>
                                 <div v-if="progressPanel">
                                     <md-progress-bar class="md-accent" :md-indeterminate="false"
-                                                     :md-progress-bar="progressPanel"></md-progress-bar>
+                                                     :md-value="progressPanel"></md-progress-bar>
                                     <md-tooltip md-delay="1000">Прогресс добавления в панель управления</md-tooltip>
                                 </div>
                                 <md-button class="md-raised md-accent" @click="sendRequest" :disabled="buttonDisabled">

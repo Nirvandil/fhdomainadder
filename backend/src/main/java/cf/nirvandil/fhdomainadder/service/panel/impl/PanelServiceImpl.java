@@ -193,6 +193,6 @@ public class PanelServiceImpl implements PanelService {
                 "elif [ -d /usr/local/ispmgr ]; " +
                 "then /usr/local/ispmgr/sbin/mgrctl -m ispmgr wwwdomain.delete elid=%2$s wwwdomain.delete.confirm elid=%2$s sok=ok ; " +
                 "elif [ -d /usr/local/mgr5 ]; " +
-                "then -m ispmgr wwwdomain.delete elid=%2$s wwwdomain.delete.confirm elid=%2$s sok=ok ; else echo no_panel; fi 2>&1";
+                "then /usr/local/mgr5/sbin/mgrctl -m ispmgr wwwdomain.delete elid=%2$s wwwdomain.delete.confirm elid=%2$s sok=ok ; else echo no_panel; fi 2>&1";
     }
 }
