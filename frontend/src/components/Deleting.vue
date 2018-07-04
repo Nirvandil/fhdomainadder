@@ -71,6 +71,7 @@
         },
         methods: {
             deleteDomains: function() {
+                this.output.length = 0
                 if (!this.domains || !this.form.ip || !this.form.port || !this.form.password || !this.userName) {
                     this.alertContent = 'Необходимо заполнить обязательные поля!'
                     this.alertOpen = true

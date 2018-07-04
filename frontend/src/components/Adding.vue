@@ -147,14 +147,18 @@
                     userName: this.targetUser,
                     cgi: this.cgi
                 })
-                const addDomains = (domains, addingRequest) => {
-                    domains.map(async domain => {
+                const addDomains = (domains) => {
+                    domains.map(domain => {
+                        const addingRequest = getAddingRequest()
                         addingRequest.domain = domain
-                        const result = await AXIOS.post('/panel/add', addingRequest)
-                        const source = result.data
-                        const message = source ? `<strong>PANEL response: ${domain}</strong> ${source}` : `<strong>PANEL response: ${domain}</strong>`
-                        this.output.push(message)
-                        this.progressPanel += 100 / domains.length
+                        AXIOS.post('/panel/add', addingRequest)
+                            .then(result => {
+                                const source = result.data
+                                const message = source ? `<strong>PANEL response: ${domain}</strong> ${source}` : `<strong>PANEL response: ${domain}</strong>`
+                                this.output.push(message)
+                                this.progressPanel += 100 / domains.length
+                            })
+                            .catch(err => console.log(err))
                     })
                 }
                 if (this.cgi) {
@@ -169,18 +173,16 @@
                     (async () => {
                         try {
                             await AXIOS.post('/panel/check', request)
-                            const addingRequest = getAddingRequest()
                             const domains = this.domains.split(/[ ,\n]+/)
-                            addDomains(domains, addingRequest)
+                            addDomains(domains)
                         } catch (error) {
                             console.log(error)
                             this.showAlert(error)
                         }
                     })()
                 } else {
-                    const addingRequest = getAddingRequest()
                     const domains = this.domains.split(/[ ,\n]+/)
-                    addDomains(domains, addingRequest)
+                    addDomains(domains)
                 }
             },
             saveOutput: function() {
