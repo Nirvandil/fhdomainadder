@@ -4,5 +4,6 @@ deploy:
   script:
     - mvn clean install
     - sudo cp ~/.m2/repository/cf/nirvandil/backend/1.0-SNAPSHOT/backend-1.0-SNAPSHOT.jar /var/www/app/fhdomainadder.jar
+    - sudo sync
     - sudo chmod +x /var/www/app/fhdomainadder.jar
     - sudo systemctl restart fhdomainadder
