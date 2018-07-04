@@ -52,8 +52,8 @@ public class PanelApiController {
     @PostMapping("/delete")
     public synchronized ResponseEntity<String> deleteDomains(@RequestBody DomainCreationRequest request) {
         log.info(request.toString());
-        //String response =  panelService.deleteDomains(request);
-        // log.info(response);
+        String response =  panelService.deleteDomain(request);
+        log.info(response);
         return ResponseEntity.ok().build();
     }
 }

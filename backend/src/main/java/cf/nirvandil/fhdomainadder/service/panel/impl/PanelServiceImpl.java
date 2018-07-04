@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
+import static java.lang.String.format;
 import static java.util.Arrays.asList;
 
 @Slf4j
@@ -70,8 +71,8 @@ public class PanelServiceImpl implements PanelService {
         String domain = request.getDomain();
         String userName = request.getUserName();
         ChannelExec channel = createChannel(connectionDetails);
-        String createCommand = request.isCgi() ? String.format(Commands.CREATE_DOMAIN_CGI, userName, domain, ip) :
-                String.format(Commands.CREATE_DOMAIN_MOD, userName, domain, ip);
+        String createCommand = request.isCgi() ? format(Commands.CREATE_DOMAIN_CGI, userName, domain, ip) :
+                format(Commands.CREATE_DOMAIN_MOD, userName, domain, ip);
         log.info("Create domain command : {}", createCommand);
         BufferedReader reader = new BufferedReader(new InputStreamReader(channel.getInputStream()));
         channel.setCommand(createCommand);
@@ -106,7 +107,7 @@ public class PanelServiceImpl implements PanelService {
         String user = request.getUser();
         ChannelExec channel = createChannel(details);
         BufferedReader reader = new BufferedReader(new InputStreamReader(channel.getInputStream()));
-        String command = String.format(Commands.CHECK_CGI, user);
+        String command = format(Commands.CHECK_CGI, user);
         log.info(command);
         channel.setCommand(command);
         channel.connect();
@@ -118,6 +119,28 @@ public class PanelServiceImpl implements PanelService {
         log.info(YesNo.valueOf(answer).name());
         if (answer.equals("NO")) throw new CgiNotSupportedException();
         return YesNo.valueOf(answer);
+    }
+
+    @Override
+    @SneakyThrows
+    public String deleteDomain(DomainCreationRequest request) {
+        ConnectionDetails connectionDetails = request.getConnectionDetails();
+        String user = request.getUserName();
+        ChannelExec channel = createChannel(connectionDetails);
+        String command = format(Commands.REMOVE_DOMAIN, user, request.getDomain());
+        log.info("DELETE domain command is:\n {}", command);
+        BufferedReader reader = new BufferedReader(new InputStreamReader(channel.getInputStream()));
+        channel.setCommand(command);
+        channel.connect();
+        List<String> output = getOutput(reader);
+        if (!output.isEmpty()) {
+            if (output.get(0).equals("no_panel")) {
+                throw new PanelDoesNotExistException();
+            }
+            log.info("Delete domain output: [{}]", output);
+        }
+        Thread.sleep(300);
+        return output.toString();
     }
 
     @SneakyThrows
@@ -164,5 +187,12 @@ public class PanelServiceImpl implements PanelService {
                 "elif [ -d /usr/local/mgr5 ]; " +
                 "then /usr/local/mgr5/sbin/mgrctl -m ispmgr webdomain.edit name=%2$s alias=www.%2$s docroot=auto owner=%1$s email=admin@%2$s ipsrc=manual ipaddrs=%3$s " +
                 "php=on php_mode=php_mode_cgi sok=ok ; else echo no_panel; fi 2>&1";
+
+        private static final String REMOVE_DOMAIN = "if [ -d /usr/local/vesta ]; " +
+                "then VESTA=/usr/local/vesta /usr/local/vesta/bin/v-delete-web-domain %1$s %2$s && VESTA=/usr/local/vesta /usr/local/vesta/bin/v-delete-dns-domain %1$s %2$s ; " +
+                "elif [ -d /usr/local/ispmgr ]; " +
+                "then /usr/local/ispmgr/sbin/mgrctl -m ispmgr wwwdomain.delete elid=%2$s wwwdomain.delete.confirm elid=%2$s sok=ok ; " +
+                "elif [ -d /usr/local/mgr5 ]; " +
+                "then -m ispmgr wwwdomain.delete elid=%2$s wwwdomain.delete.confirm elid=%2$s sok=ok ; else echo no_panel; fi 2>&1";
     }
 }

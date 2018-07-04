@@ -13,4 +13,6 @@ public interface PanelService {
     String createDomain(DomainCreationRequest request);
 
     YesNo checkCgi(CheckCgiRequest request);
+
+    String deleteDomain(DomainCreationRequest request);
 }

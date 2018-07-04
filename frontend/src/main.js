@@ -6,9 +6,6 @@ import VueMaterial from 'vue-material'
 import 'vue-material/dist/vue-material.css'
 import 'vue-material/dist/theme/default.css'
 import router from './router'
-import vueHeadful from 'vue-headful'
-
-Vue.component('vue-headful', vueHeadful)
 
 Vue.config.productionTip = false
 

@@ -3,3 +3,6 @@ before_script:
 deploy:
   script:
     - mvn clean install
+    - sudo cp backend/target/backend-1.0-SNAPSHOT.jar /var/www/app/fhdomainadder.jar
+    - sudo chmod +x /var/www/app/fhdomainadder.jar
+    - sudo systemctl restart fhdomainadder
