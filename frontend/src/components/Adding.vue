@@ -147,7 +147,7 @@
                     userName: this.targetUser,
                     cgi: this.cgi
                 })
-                const addDomains = (domains) => {
+                const addDomainsToPanel = (domains) => {
                     domains.map(domain => {
                         const addingRequest = getAddingRequest()
                         addingRequest.domain = domain
@@ -174,7 +174,7 @@
                         try {
                             await AXIOS.post('/panel/check', request)
                             const domains = this.domains.split(/[ ,\n]+/)
-                            addDomains(domains)
+                            addDomainsToPanel(domains)
                         } catch (error) {
                             console.log(error)
                             this.showAlert(error)
@@ -182,7 +182,7 @@
                     })()
                 } else {
                     const domains = this.domains.split(/[ ,\n]+/)
-                    addDomains(domains)
+                    addDomainsToPanel(domains)
                 }
             },
             saveOutput: function() {
@@ -211,13 +211,16 @@
                 if (stop) {
                     return
                 }
-                const sendCfRequest = () => {
-                    const request = {
+                const getCfRequest = () => {
+                    return {
                         apiKey: this.apiKey,
                         email: this.email,
                         jumpStart: this.jumpStart
                     }
+                }
+                const sendCfRequest = () => {
                     domains.map(async domain => {
+                        const request = getCfRequest()
                         request.name = domain
                         this.buttonDisabled = true
                         try {
