@@ -31,6 +31,8 @@
                         <md-icon>description</md-icon>
                     </md-field>
 
+                    <md-progress-bar v-if="progress" md-mode="determinate" :md-value="progress"></md-progress-bar>
+
                     <md-button class="md-raised md-accent" @click="deleteDomains" :disabled="buttonDisabled">
                         Удалить
                     </md-button>
@@ -66,12 +68,14 @@
                 buttonDisabled: false,
                 alertOpen: false,
                 alertContent: '',
-                output: []
+                output: [],
+                progress: 0
             }
         },
         methods: {
             deleteDomains: function() {
                 this.output.length = 0
+                this.progress = 0
                 if (!this.domains || !this.form.ip || !this.form.port || !this.form.password || !this.userName) {
                     this.alertContent = 'Необходимо заполнить обязательные поля!'
                     this.alertOpen = true
@@ -102,6 +106,7 @@
                                 } else {
                                     this.output.push(`${doman} deleted (or never exists).`)
                                 }
+                                this.progress += 100 / domains.length
                             })
                             .catch(err => {
                                 this.alertOpen = true
