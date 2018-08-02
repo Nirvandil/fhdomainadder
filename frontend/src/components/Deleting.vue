@@ -56,7 +56,7 @@
     export default {
         name: 'deleting',
         components: {NavTabs},
-        data() {
+        data () {
             return {
                 form: {
                     ip: '',
@@ -73,7 +73,7 @@
             }
         },
         methods: {
-            deleteDomains: function() {
+            deleteDomains: function () {
                 this.output.length = 0
                 this.progress = 0
                 if (!this.domains || !this.form.ip || !this.form.port || !this.form.password || !this.userName) {

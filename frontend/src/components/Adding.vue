@@ -2,105 +2,109 @@
     <md-app>
         <md-app-content>
             <nav-tabs active="adding"></nav-tabs>
-                    <md-card>
-                        <form>
-                            <div>
-                                <md-checkbox v-model="toCf"><strong>В CloudFlare</strong></md-checkbox>
-                            </div>
-                            <template v-if="toCf">
-                                <div>
-                                    <md-checkbox v-model="jumpStart">Автоматически получить данные DNS</md-checkbox>
-                                    <md-tooltip>Попытается получить все DNS-записи с текущих серверов имён, в противном
-                                        случае
-                                        будут добавлены только сам домен и поддомен www с A-записью, указывающей на IP
-                                        из
-                                        поля
-                                        ниже.
-                                    </md-tooltip>
-                                </div>
-                                <md-field>
-                                    <md-input v-model.trim="apiKey" required></md-input>
-                                    <label>Global API key</label>
-                                </md-field>
-                                <md-field>
-                                    <md-input type="email" v-model.trim="email" required></md-input>
-                                    <label>Email пользователя CloudFlare</label>
-                                </md-field>
-                                <md-field v-if="!jumpStart">
-                                    <md-input v-model.trim="ip" required :disabled='toPanel' :value='ip'></md-input>
-                                    <label>IP-адрес для добавляемых в CloudFlare доменов</label>
-                                    <md-tooltip v-if="toPanel">В случае добавления одновременно в панель управления и в
-                                        CloudFlare
-                                        будет использован IP-адрес сервера
-                                    </md-tooltip>
-                                </md-field>
-                            </template>
-                            <div>
-                                <md-checkbox v-model="toPanel"><strong>В панель управления</strong></md-checkbox>
-                            </div>
-                            <template v-if="toPanel">
-                                <md-field>
-                                    <md-input v-model.trim="ip" v-if="toPanel || !jumpStart" required></md-input>
-                                    <label>IP сервера</label>
-                                </md-field>
-                                <md-field>
-                                    <md-input v-model.trim="port" placeholder="Порт SSH" required></md-input>
-                                    <label>3333 по умолчанию</label>
-                                </md-field>
-                                <md-field>
-                                    <md-input type="password" v-model="password" required></md-input>
-                                    <label>Пароль root на сервере</label>
-                                </md-field>
-                                <div>
-                                    <md-switch v-model="cgi">
-                                        <small>{{cgi ? 'РНР как CGI' : 'PHP как модуль Apache' }}</small>
-                                    </md-switch>
-                                    <md-tooltip>Режим работы РНР - как модуль Apache или как CGI</md-tooltip>
-                                </div>
-                            </template>
-                            <template v-if="toPanel || toCf">
-                                <md-field>
-                                    <md-textarea required v-model.trim="domains"></md-textarea>
-                                    <label>Список доменов, по одному в строке</label>
-                                    <md-icon>description</md-icon>
-                                </md-field>
-                                <div v-if="progressCf">
-                                    <md-progress-bar :md-indeterminate='false'
-                                                     :md-value="progressCf"></md-progress-bar>
-                                    <md-tooltip md-delay="1000">Прогресс добавления в CloudFlare</md-tooltip>
-                                </div>
-                                <md-divider v-if="progressCf || progressPanel"></md-divider>
-                                <div v-if="progressPanel">
-                                    <md-progress-bar class="md-accent" :md-indeterminate="false"
-                                                     :md-value="progressPanel"></md-progress-bar>
-                                    <md-tooltip md-delay="1000">Прогресс добавления в панель управления</md-tooltip>
-                                </div>
-                                <md-button class="md-raised md-accent" @click="sendRequest" :disabled="buttonDisabled">
-                                    Добавить
-                                </md-button>
-                                <md-button class="md-primary md-raised right" @click="saveOutput">Сохранить вывод
-                                </md-button>
-                            </template>
-                        </form>
-                        <md-card class="output" v-if="output.length">
-                            <ul style="text-align: left">
-                                <li v-for="out in output" :key="out" v-html="out">
-                                </li>
-                            </ul>
-                        </md-card>
-                        <br>
-                    </md-card>
-                    <md-dialog :md-active.sync="userChooseOpen">
-                        <md-dialog-title :md-click-outside-to-close='false'>Выберите пользователя</md-dialog-title>
+            <md-card>
+                <form>
+                    <div>
+                        <md-checkbox v-model="toCf"><strong>В CloudFlare</strong></md-checkbox>
+                    </div>
+                    <template v-if="toCf">
+                        <div>
+                            <md-checkbox v-model="jumpStart">Автоматически получить данные DNS</md-checkbox>
+                            <md-tooltip>Попытается получить все DNS-записи с текущих серверов имён, в противном
+                                случае
+                                будут добавлены только сам домен и поддомен www с A-записью, указывающей на IP
+                                из
+                                поля
+                                ниже.
+                            </md-tooltip>
+                        </div>
                         <md-field>
-                            <md-select v-model="targetUser" class="output" md-dense>
-                                <md-option v-for="user in users" :key="user" :value="user">{{user}}</md-option>
-                            </md-select>
+                            <md-input v-model.trim="apiKey" required></md-input>
+                            <label>Global API key</label>
                         </md-field>
-                        <md-button @click="sendAddDomains">Ок</md-button>
-                        <md-button @click="userChooseOpen=false">Отмена</md-button>
-                    </md-dialog>
-                    <md-dialog-alert :md-active.sync="alertOpen" :md-content="alertContent" md-confirm-text="OK"/>
+                        <md-field>
+                            <md-input type="email" v-model.trim="email" required></md-input>
+                            <label>Email пользователя CloudFlare</label>
+                        </md-field>
+                        <md-field v-if="!jumpStart">
+                            <md-input v-model.trim="ip" required :disabled='toPanel' :value='ip'></md-input>
+                            <label>IP-адрес для добавляемых в CloudFlare доменов</label>
+                            <md-tooltip v-if="toPanel">В случае добавления одновременно в панель управления и в
+                                CloudFlare
+                                будет использован IP-адрес сервера
+                            </md-tooltip>
+                        </md-field>
+                    </template>
+                    <div>
+                        <md-checkbox v-model="toPanel"><strong>В панель управления</strong></md-checkbox>
+                    </div>
+                    <template v-if="toPanel">
+                        <md-field>
+                            <md-input v-model.trim="ip" v-if="toPanel || !jumpStart" required></md-input>
+                            <label>IP сервера</label>
+                        </md-field>
+                        <md-field>
+                            <md-input v-model.trim="port" placeholder="Порт SSH" required></md-input>
+                            <label>3333 по умолчанию</label>
+                        </md-field>
+                        <md-field>
+                            <md-input type="password" v-model="password" required></md-input>
+                            <label>Пароль root на сервере</label>
+                        </md-field>
+                        <div>
+                            <md-switch v-model="cgi">
+                                <small>{{cgi ? 'РНР как CGI' : 'PHP как модуль Apache' }}</small>
+                            </md-switch>
+                            <md-tooltip>Режим работы РНР - как модуль Apache или как CGI</md-tooltip>
+                        </div>
+                        <md-field>
+                            <label>index.php</label>
+                            <md-file v-model="indexFile" placeholder="Файл, который будет скопирован в каждый каталог созданного домена."/>
+                        </md-field>
+                    </template>
+                    <template v-if="toPanel || toCf">
+                        <md-field>
+                            <md-textarea required v-model.trim="domains"></md-textarea>
+                            <label>Список доменов, по одному в строке</label>
+                            <md-icon>description</md-icon>
+                        </md-field>
+                        <div v-if="progressCf">
+                            <md-progress-bar :md-indeterminate='false'
+                                             :md-value="progressCf"></md-progress-bar>
+                            <md-tooltip md-delay="1000">Прогресс добавления в CloudFlare</md-tooltip>
+                        </div>
+                        <md-divider v-if="progressCf || progressPanel"></md-divider>
+                        <div v-if="progressPanel">
+                            <md-progress-bar class="md-accent" :md-indeterminate="false"
+                                             :md-value="progressPanel"></md-progress-bar>
+                            <md-tooltip md-delay="1000">Прогресс добавления в панель управления</md-tooltip>
+                        </div>
+                        <md-button class="md-raised md-accent" @click="sendRequest" :disabled="buttonDisabled">
+                            Добавить
+                        </md-button>
+                        <md-button class="md-primary md-raised right" @click="saveOutput">Сохранить вывод
+                        </md-button>
+                    </template>
+                </form>
+                <md-card class="output" v-if="output.length">
+                    <ul style="text-align: left">
+                        <li v-for="out in output" :key="out" v-html="out">
+                        </li>
+                    </ul>
+                </md-card>
+                <br>
+            </md-card>
+            <md-dialog :md-active.sync="userChooseOpen">
+                <md-dialog-title :md-click-outside-to-close='false'>Выберите пользователя</md-dialog-title>
+                <md-field>
+                    <md-select v-model="targetUser" class="output" md-dense>
+                        <md-option v-for="user in users" :key="user" :value="user">{{user}}</md-option>
+                    </md-select>
+                </md-field>
+                <md-button @click="sendAddDomains">Ок</md-button>
+                <md-button @click="userChooseOpen=false">Отмена</md-button>
+            </md-dialog>
+            <md-dialog-alert :md-active.sync="alertOpen" :md-content="alertContent" md-confirm-text="OK"/>
         </md-app-content>
     </md-app>
 </template>
@@ -112,31 +116,30 @@
     export default {
         name: 'DomainAdding',
         components: {NavTabs},
-        data() {
-            return {
-                toCf: false,
-                toPanel: false,
-                apiKey: '',
-                email: '',
-                jumpStart: true,
-                ip: '',
-                port: 3333,
-                password: '',
-                domains: '',
-                users: [],
-                targetUser: '',
-                output: [],
-                buttonDisabled: false,
-                alertContent: ' ',
-                cgi: true,
-                progressCf: 0,
-                progressPanel: 0,
-                alertOpen: false,
-                userChooseOpen: false
-            }
-        },
+        data: () => ({
+            toCf: false,
+            toPanel: false,
+            apiKey: '',
+            email: '',
+            jumpStart: true,
+            ip: '',
+            port: 3333,
+            password: '',
+            domains: '',
+            users: [],
+            targetUser: '',
+            output: [],
+            buttonDisabled: false,
+            alertContent: ' ',
+            cgi: true,
+            progressCf: 0,
+            progressPanel: 0,
+            alertOpen: false,
+            userChooseOpen: false,
+            indexFile: null
+        }),
         methods: {
-            sendAddDomains: function() {
+            sendAddDomains: function () {
                 this.userChooseOpen = false
                 const getAddingRequest = () => ({
                     connectionDetails: {
@@ -185,12 +188,13 @@
                     addDomainsToPanel(domains)
                 }
             },
-            saveOutput: function() {
+            saveOutput: function () {
                 document.location =
                     'data:text/attachment;,' +
                     this.output
             },
-            sendRequest: function() {
+            sendRequest: function () {
+                console.log(`File: ${this.indexFile}`)
                 this.progressCf = 0
                 this.progressPanel = 0
                 const domains = this.domains.split(/[ ,\n]+/)
@@ -294,7 +298,7 @@
                     sendGetPanelUsersRequest()
                 }
             },
-            showAlert: function(error) {
+            showAlert: function (error) {
                 let content
                 if (error.data) {
                     content = error.data.message || error.data
