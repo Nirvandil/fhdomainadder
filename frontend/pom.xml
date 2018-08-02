@@ -32,7 +32,7 @@
                             <goal>install-node-and-npm</goal>
                         </goals>
                         <configuration>
-                            <nodeVersion>v10.5.0</nodeVersion>
+                            <nodeVersion>v10.7.0</nodeVersion>
                         </configuration>
                     </execution>
                     <!-- Install all project dependencies -->

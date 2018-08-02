@@ -1,5 +1,5 @@
 package cf.nirvandil.fhdomainadder.service.panel;
 
 public interface IpTester {
-    boolean isOurNet(String ip);
+    boolean isAllowedAddress(String ip);
 }

@@ -16,6 +16,7 @@ import com.jcraft.jsch.Session;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -37,7 +38,7 @@ public class PanelServiceImpl implements PanelService {
     private final IpTester ipTester;
 
     @Autowired
-    public PanelServiceImpl(JSch jSch, IpTester ipTester) {
+    public PanelServiceImpl(JSch jSch, @Qualifier("simpleIpTester") IpTester ipTester) {
         this.jSch = jSch;
         this.ipTester = ipTester;
     }
@@ -45,7 +46,7 @@ public class PanelServiceImpl implements PanelService {
     @Override
     @SneakyThrows
     public List<String> getUsers(ConnectionDetails connectionDetails) {
-        if (!ipTester.isOurNet(connectionDetails.getIp())) {
+        if (!ipTester.isAllowedAddress(connectionDetails.getIp())) {
             throw new HostNotAllowedException();
         }
         ChannelExec channel = createChannel(connectionDetails);

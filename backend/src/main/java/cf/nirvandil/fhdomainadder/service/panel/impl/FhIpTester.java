@@ -5,7 +5,7 @@ import org.apache.commons.net.util.SubnetUtils;
 import org.springframework.stereotype.Component;
 
 @Component
-public class IpTesterImpl implements IpTester {
+public class FhIpTester implements IpTester {
     private String[] ourNets = {
             "91.90.192.0/24",
             "91.90.193.0/24",
@@ -29,7 +29,7 @@ public class IpTesterImpl implements IpTester {
     };
 
     @Override
-    public boolean isOurNet(String ip) {
+    public boolean isAllowedAddress(String ip) {
         for (final String subnet : ourNets) {
             SubnetUtils.SubnetInfo subnetInfo = (new SubnetUtils(subnet)).getInfo();
             if (subnetInfo.isInRange(ip))
