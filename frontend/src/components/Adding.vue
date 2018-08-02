@@ -211,6 +211,7 @@
                 if (stop) {
                     return
                 }
+                this.output.length = 0
                 const getCfRequest = () => {
                     return {
                         apiKey: this.apiKey,
