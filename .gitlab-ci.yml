@@ -7,3 +7,5 @@ deploy:
     - sudo sync
     - sudo chmod +x /var/www/app/fhdomainadder.jar
     - sudo systemctl restart fhdomainadder
+  only:
+    - master

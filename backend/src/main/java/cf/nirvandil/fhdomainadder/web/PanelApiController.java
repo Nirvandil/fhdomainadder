@@ -48,8 +48,9 @@ public class PanelApiController {
 
     @PostMapping("/check")
     public ResponseEntity<YesNo> checkCgi(@RequestBody CheckCgiRequest request) {
-
-        return ResponseEntity.ok(YesNo.YES);
+        YesNo answer = panelService.checkCgi(request);
+        log.info(answer.toString());
+        return ResponseEntity.ok(answer);
     }
 
     @PostMapping("/delete")

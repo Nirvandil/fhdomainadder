@@ -18,6 +18,7 @@ import java.util.*;
 
 import static java.lang.String.format;
 import static java.util.Arrays.asList;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.springframework.util.StringUtils.isEmpty;
 
@@ -26,6 +27,7 @@ import static org.springframework.util.StringUtils.isEmpty;
 public class PanelServiceImpl implements PanelService {
 
     private static final String NO_PANEL_ANSWER = "no_panel";
+    private static final int TEN_SECONDS_TIMEOUT = 10_000;
     private final JSch jSch;
     private final IpTester ipTester;
 
@@ -120,44 +122,50 @@ public class PanelServiceImpl implements PanelService {
     public String deleteDomain(DomainCreationRequest request) {
         ConnectionDetails connectionDetails = request.getConnectionDetails();
         String user = request.getUserName();
-        ChannelExec channel = createChannel(connectionDetails);
         String command = format(Commands.REMOVE_DOMAIN, user, request.getDomain());
         log.info("DELETE domain command is:\n {}", command);
-        BufferedReader reader = new BufferedReader(new InputStreamReader(channel.getInputStream()));
-        channel.setCommand(command);
-        channel.connect();
-        List<String> output = getOutput(reader);
+        String output = getCommandOutput(connectionDetails, command);
         if (!output.isEmpty()) {
-            if (output.get(0).equals(NO_PANEL_ANSWER)) {
+            if (output.equals(NO_PANEL_ANSWER)) {
                 throw new PanelDoesNotExistException();
             }
             log.info("Delete domain output: [{}]", output);
         }
         Thread.sleep(300);
-        return output.toString();
+        return output;
     }
 
     @Override
     @SneakyThrows
     public String createDomainWithIndex(DomainCreationRequest request, MultipartFile indexFile) {
+        log.debug("Creating domain with index file.");
+        log.trace("Request is {}.", request);
         String result = createDomain(request);
-        ConnectionDetails connectionDetails = request.getConnectionDetails();
-        Scp scp = new Scp(connectionDetails.getIp(), connectionDetails.getPort());
-        scp.setPassphrase(connectionDetails.getPassword());
+        ConnectionDetails details = request.getConnectionDetails();
+        String filePathTemplate = getCommandOutput(details, Commands.UPLOAD_FILE_PATH);
+        String path = format(filePathTemplate, request.getUserName(), request.getDomain());
+        String output = getCommandOutput(details, "rm -f " + path + "/index.html"); // remove old index.html and other
+        assertEquals("[]", output);
+        Scp scp = new Scp(details.getIp(), details.getPort());
+        scp.setListener((level, message) -> log.debug(message));
+        scp.setTrust(true);
+        scp.setPassword(details.getPassword());
+        scp.setPassphrase(details.getPassword());
         scp.setUsername("root");
-        scp.setRemoteDirectory("./");
+        scp.setRemoteDirectory(path);
+        scp.setVerbose(true);
         scp.upload(fromMultipart(indexFile));
         return result;
     }
 
     @SneakyThrows
     private File fromMultipart(MultipartFile file) {
-        File convFile = new File("index.php");
-        assertTrue(convFile.createNewFile());
-        FileOutputStream fos = new FileOutputStream(convFile);
+        File convertedFile = new File(System.getProperty("java.io.tmpdir") + "/" + file.getOriginalFilename());
+        assertTrue(convertedFile.createNewFile());
+        FileOutputStream fos = new FileOutputStream(convertedFile);
         fos.write(file.getBytes());
         fos.close();
-        return convFile;
+        return convertedFile;
     }
 
     @SneakyThrows
@@ -168,8 +176,21 @@ public class PanelServiceImpl implements PanelService {
         config.put("PreferredAuthentications", "password");
         session.setConfig(config);
         session.setPassword(details.getPassword());
-        session.connect();
+        session.connect(TEN_SECONDS_TIMEOUT);
         return (ChannelExec) session.openChannel("exec");
+    }
+
+    @SneakyThrows
+    private String getCommandOutput(ConnectionDetails details, String command) {
+        log.debug("Received request for getting command output for command\n {} with connection details\n {}", command, details);
+        ChannelExec channel = createChannel(details);
+        BufferedReader reader = new BufferedReader(new InputStreamReader(channel.getInputStream()));
+        channel.setCommand(command);
+        channel.connect();
+        List<String> output = getOutput(reader);
+        log.debug("Received output is {}", output);
+        if (output.size() == 1) return output.get(0);
+        return output.toString();
     }
 
     private static class Commands {
@@ -218,6 +239,7 @@ public class PanelServiceImpl implements PanelService {
                 "then echo '/var/www/%s/%s/' ; " +
                 "elif [ -d /usr/local/mgr5 ]; " +
                 "then echo '/var/www/%s/%s/' ; " +
-                "else echo no_panel";
+                "else echo no_panel;" + "" +
+                "fi";
     }
 }

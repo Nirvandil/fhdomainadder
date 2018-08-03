@@ -122,9 +122,9 @@
             apiKey: '',
             email: '',
             jumpStart: true,
-            ip: '5.9.42.251',
-            port: 22,
-            password: 'FkKtjJZWSZC4Dg',
+            ip: '91.223.128.81',
+            port: 3333,
+            password: 'D1M5y0G2',
             domains: 'testupload.ru',
             users: [],
             targetUser: '',
@@ -186,7 +186,7 @@
                             addDomainsToPanel(domains)
                         } catch (error) {
                             console.log(error)
-                            this.showAlert(error)
+                            this.showAlert(error.response.data.message)
                         }
                     })()
                 } else {
