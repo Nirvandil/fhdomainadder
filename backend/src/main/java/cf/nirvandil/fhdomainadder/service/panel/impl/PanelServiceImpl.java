@@ -19,7 +19,7 @@ import java.util.*;
 import static java.lang.String.format;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
 import static org.springframework.util.StringUtils.isEmpty;
 
 @Slf4j
@@ -141,6 +141,7 @@ public class PanelServiceImpl implements PanelService {
         log.debug("Creating domain with index file.");
         log.trace("Request is {}.", request);
         String result = createDomain(request);
+        assertFalse(result.contains("ERROR"));
         ConnectionDetails details = request.getConnectionDetails();
         String filePathTemplate = getCommandOutput(details, Commands.UPLOAD_FILE_PATH);
         String path = format(filePathTemplate, request.getUserName(), request.getDomain());
