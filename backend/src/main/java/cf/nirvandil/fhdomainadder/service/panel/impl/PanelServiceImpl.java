@@ -144,7 +144,7 @@ public class PanelServiceImpl implements PanelService {
         ConnectionDetails details = request.getConnectionDetails();
         String filePathTemplate = getCommandOutput(details, Commands.UPLOAD_FILE_PATH);
         String path = format(filePathTemplate, request.getUserName(), request.getDomain());
-        String output = getCommandOutput(details, "rm -f " + path + "/index.html"); // remove old index.html and other
+        String output = getCommandOutput(details, "rm -f " + path + "index.html"); // remove old index.html
         assertEquals("[]", output);
         Scp scp = new Scp(details.getIp(), details.getPort());
         scp.setListener((level, message) -> log.debug(message));
@@ -153,15 +153,24 @@ public class PanelServiceImpl implements PanelService {
         scp.setPassphrase(details.getPassword());
         scp.setUsername("root");
         scp.setRemoteDirectory(path);
-        scp.setVerbose(true);
-        scp.upload(fromMultipart(indexFile));
+        scp.setVerbose(false);
+        File file = fromMultipart(indexFile);
+        try {
+            scp.upload(file);
+        } finally {
+            if(!file.delete()) {
+                log.warn("Can't delete temporary file: {}", file.getPath() + ":" + file.getName());
+            }
+        }
         return result;
     }
 
     @SneakyThrows
     private File fromMultipart(MultipartFile file) {
         File convertedFile = new File(System.getProperty("java.io.tmpdir") + "/" + file.getOriginalFilename());
-        assertTrue(convertedFile.createNewFile());
+        if (!convertedFile.createNewFile()) {
+            log.warn("Can't create new file {}, may be already exists on server.", file.getOriginalFilename());
+        }
         FileOutputStream fos = new FileOutputStream(convertedFile);
         fos.write(file.getBytes());
         fos.close();
@@ -218,7 +227,7 @@ public class PanelServiceImpl implements PanelService {
                 "then if [ -z \"$(/usr/local/mgr5/sbin/mgrctl -m ispmgr user elid=%1$s | grep limit_php_mode_cgi)\" ]; then echo NO; else echo YES; fi;" +
                 "else echo no_panel; fi";
         private static final String CREATE_DOMAIN_CGI = "if [ -d /usr/local/vesta ]; " +
-                "then VESTA=/usr/local/vesta /usr/local/vesta/bin/v-add-web-domain %1$s %2$s %3$s; " +
+                "then VESTA=/usr/local/vesta /usr/local/vesta/bin/v-add-web-domain %1$s %2$s %3$s; VESTA=/usr/local/vesta /usr/local/vesta/bin/v-add-dns-domain %1$s %2$s %3$s ;" +
                 "elif [ -d /usr/local/ispmgr ]; " +
                 "then /usr/local/ispmgr/sbin/mgrctl -m ispmgr wwwdomain.edit " +
                 "domain=%2$s alias=www.%2$s docroot=auto owner=%1$s admin=admin@%2$s autosubdomain=asdnone ip=%3$s php=phpcgi sok=ok; " +

@@ -79,7 +79,7 @@
                                              :md-value="progressPanel"></md-progress-bar>
                             <md-tooltip md-delay="1000">Прогресс добавления в панель управления</md-tooltip>
                         </div>
-                        <md-button class="md-raised md-accent" @click="sendAddDomains" :disabled="buttonDisabled">
+                        <md-button class="md-raised md-accent" @click="sendRequest" :disabled="buttonDisabled">
                             Добавить
                         </md-button>
                         <md-button class="md-primary md-raised right" @click="saveOutput">Сохранить вывод
@@ -122,10 +122,10 @@
             apiKey: '',
             email: '',
             jumpStart: true,
-            ip: '91.223.128.81',
-            port: 3333,
-            password: 'D1M5y0G2',
-            domains: 'testupload.ru',
+            ip: '',
+            port: null,
+            password: '',
+            domains: '',
             users: [],
             targetUser: '',
             output: [],
@@ -264,7 +264,7 @@
                                 })
                             }
                         } catch (err) {
-                            this.showAlert(err)
+                            this.showAlert(err.response.data.message)
                         }
                         this.buttonDisabled = false
                         this.progressCf += 100 / domains.length

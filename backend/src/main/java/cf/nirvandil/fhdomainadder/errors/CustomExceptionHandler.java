@@ -1,11 +1,13 @@
 package cf.nirvandil.fhdomainadder.errors;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
+@Slf4j
 @ResponseBody
 @ControllerAdvice
 public class CustomExceptionHandler {
@@ -34,6 +36,7 @@ public class CustomExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(Throwable.class)
     public ErrorMessage handleOtherErrors(Exception e) {
+        log.error("Unknown Exception: {}", e.getMessage(), e);
         return new ErrorMessage(e.getMessage());
     }
 }
