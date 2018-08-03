@@ -45,7 +45,7 @@
                         </md-field>
                         <md-field>
                             <md-input v-model.trim="port" placeholder="Порт SSH" required></md-input>
-                            <label>3333 по умолчанию</label>
+                            <label>22 по умолчанию</label>
                         </md-field>
                         <md-field>
                             <md-input type="password" v-model="password" required></md-input>
@@ -58,8 +58,8 @@
                             <md-tooltip>Режим работы РНР - как модуль Apache или как CGI</md-tooltip>
                         </div>
                         <md-field>
-                            <label>index.php</label>
-                            <md-file v-model="indexFile" placeholder="Файл, который будет скопирован в каждый каталог созданного домена."/>
+                            <input class="md-file" type="file" ref="file" @change="onFileChanged"
+                                     placeholder="Файл, который будет скопирован в каждый каталог созданного домена."/>
                         </md-field>
                     </template>
                     <template v-if="toPanel || toCf">
@@ -79,7 +79,7 @@
                                              :md-value="progressPanel"></md-progress-bar>
                             <md-tooltip md-delay="1000">Прогресс добавления в панель управления</md-tooltip>
                         </div>
-                        <md-button class="md-raised md-accent" @click="sendRequest" :disabled="buttonDisabled">
+                        <md-button class="md-raised md-accent" @click="sendAddDomains" :disabled="buttonDisabled">
                             Добавить
                         </md-button>
                         <md-button class="md-primary md-raised right" @click="saveOutput">Сохранить вывод
@@ -118,14 +118,14 @@
         components: {NavTabs},
         data: () => ({
             toCf: false,
-            toPanel: false,
+            toPanel: true,
             apiKey: '',
             email: '',
             jumpStart: true,
-            ip: '',
-            port: 3333,
-            password: '',
-            domains: '',
+            ip: '5.9.42.251',
+            port: 22,
+            password: 'FkKtjJZWSZC4Dg',
+            domains: 'testupload.ru',
             users: [],
             targetUser: '',
             output: [],
@@ -154,7 +154,13 @@
                     domains.map(domain => {
                         const addingRequest = getAddingRequest()
                         addingRequest.domain = domain
-                        AXIOS.post('/panel/add', addingRequest)
+                        const formData = new FormData()
+                        formData.append('request', JSON.stringify(addingRequest))
+                        if (this.indexFile) {
+                            console.log(this.indexFile)
+                            formData.append('indexFile', this.indexFile)
+                        }
+                        AXIOS.post('/panel/add', formData)
                             .then(result => {
                                 const source = result.data
                                 const message = source ? `<strong>PANEL response: ${domain}</strong> ${source}` : `<strong>PANEL response: ${domain}</strong>`
@@ -279,7 +285,8 @@
                             this.buttonDisabled = false
                         }
                     } catch (error) {
-                        this.showAlert(error)
+                        console.log(error)
+                        this.showAlert(error.response.data.message)
                         this.buttonDisabled = false
                     }
                 }
@@ -305,6 +312,10 @@
                 } else content = error.toString() // just raw error string
                 this.alertContent = content
                 this.alertOpen = true
+            },
+            onFileChanged: function () {
+                console.log(this.$refs.file.files[0])
+                this.indexFile = this.$refs.file.files[0]
             }
         }
     }

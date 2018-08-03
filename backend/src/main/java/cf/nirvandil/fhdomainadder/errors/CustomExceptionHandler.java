@@ -19,7 +19,7 @@ public class CustomExceptionHandler {
     @ResponseStatus(HttpStatus.PRECONDITION_FAILED)
     @ExceptionHandler(PanelDoesNotExistException.class)
     public ErrorMessage handleNoPanel() {
-        return new ErrorMessage("Работа возможна лишь с VESTA и ISPmanager 4/5.");
+        return new ErrorMessage("Работа возможна лишь с VESTA и ISPmanager 4/5, поддерживаемая панель не найдена.");
     }
     @ResponseStatus(HttpStatus.PRECONDITION_FAILED)
     @ExceptionHandler(HostNotAllowedException.class)

@@ -1,39 +1,31 @@
 package cf.nirvandil.fhdomainadder.service.panel.impl;
 
-import cf.nirvandil.fhdomainadder.errors.CgiNotSupportedException;
-import cf.nirvandil.fhdomainadder.errors.HostNotAllowedException;
-import cf.nirvandil.fhdomainadder.errors.NoSuchUsersException;
-import cf.nirvandil.fhdomainadder.errors.PanelDoesNotExistException;
-import cf.nirvandil.fhdomainadder.model.panel.CheckCgiRequest;
-import cf.nirvandil.fhdomainadder.model.panel.ConnectionDetails;
-import cf.nirvandil.fhdomainadder.model.panel.DomainCreationRequest;
-import cf.nirvandil.fhdomainadder.model.panel.YesNo;
+import cf.nirvandil.fhdomainadder.errors.*;
+import cf.nirvandil.fhdomainadder.model.panel.*;
 import cf.nirvandil.fhdomainadder.service.panel.IpTester;
 import cf.nirvandil.fhdomainadder.service.panel.PanelService;
-import com.jcraft.jsch.ChannelExec;
-import com.jcraft.jsch.JSch;
-import com.jcraft.jsch.Session;
+import cf.nirvandil.fhdomainadder.service.panel.scp.Scp;
+import com.jcraft.jsch.*;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
+import java.io.*;
+import java.util.*;
 
 import static java.lang.String.format;
 import static java.util.Arrays.asList;
+import static org.junit.Assert.assertTrue;
+import static org.springframework.util.StringUtils.isEmpty;
 
 @Slf4j
 @Service
 public class PanelServiceImpl implements PanelService {
 
+    private static final String NO_PANEL_ANSWER = "no_panel";
     private final JSch jSch;
     private final IpTester ipTester;
 
@@ -54,10 +46,10 @@ public class PanelServiceImpl implements PanelService {
         channel.setCommand(Commands.GET_USERS);
         channel.connect();
         List<String> output = getOutput(reader);
-        if (StringUtils.isEmpty(output.get(0))) {
+        if (isEmpty(output.get(0))) {
             throw new NoSuchUsersException();
         }
-        if (output.get(0).equals("no_panel")) {
+        if (output.get(0).equals(NO_PANEL_ANSWER)) {
             throw new PanelDoesNotExistException();
         }
         log.info("Found users [{}]", output);
@@ -80,10 +72,10 @@ public class PanelServiceImpl implements PanelService {
         channel.connect();
         List<String> output = getOutput(reader);
         if (!output.isEmpty()) {
-            if (StringUtils.isEmpty(output.get(0))) {
+            if (isEmpty(output.get(0))) {
                 throw new NoSuchUsersException();
             }
-            if (output.get(0).equals("no_panel")) {
+            if (output.get(0).equals(NO_PANEL_ANSWER)) {
                 throw new PanelDoesNotExistException();
             }
             log.info("Create domain output: [{}]", output);
@@ -98,6 +90,7 @@ public class PanelServiceImpl implements PanelService {
         while ((line = reader.readLine()) != null) {
             output.addAll(asList(line.trim().split(" ")));
         }
+        reader.close();
         return output;
     }
 
@@ -114,7 +107,7 @@ public class PanelServiceImpl implements PanelService {
         channel.connect();
         List<String> output = getOutput(reader);
         String answer = output.get(0);
-        if (answer.equals("no_panel")) {
+        if (answer.equals(NO_PANEL_ANSWER)) {
             throw new PanelDoesNotExistException();
         }
         log.info(YesNo.valueOf(answer).name());
@@ -135,13 +128,36 @@ public class PanelServiceImpl implements PanelService {
         channel.connect();
         List<String> output = getOutput(reader);
         if (!output.isEmpty()) {
-            if (output.get(0).equals("no_panel")) {
+            if (output.get(0).equals(NO_PANEL_ANSWER)) {
                 throw new PanelDoesNotExistException();
             }
             log.info("Delete domain output: [{}]", output);
         }
         Thread.sleep(300);
         return output.toString();
+    }
+
+    @Override
+    @SneakyThrows
+    public String createDomainWithIndex(DomainCreationRequest request, MultipartFile indexFile) {
+        String result = createDomain(request);
+        ConnectionDetails connectionDetails = request.getConnectionDetails();
+        Scp scp = new Scp(connectionDetails.getIp(), connectionDetails.getPort());
+        scp.setPassphrase(connectionDetails.getPassword());
+        scp.setUsername("root");
+        scp.setRemoteDirectory("./");
+        scp.upload(fromMultipart(indexFile));
+        return result;
+    }
+
+    @SneakyThrows
+    private File fromMultipart(MultipartFile file) {
+        File convFile = new File("index.php");
+        assertTrue(convFile.createNewFile());
+        FileOutputStream fos = new FileOutputStream(convFile);
+        fos.write(file.getBytes());
+        fos.close();
+        return convFile;
     }
 
     @SneakyThrows
@@ -195,5 +211,13 @@ public class PanelServiceImpl implements PanelService {
                 "then /usr/local/ispmgr/sbin/mgrctl -m ispmgr wwwdomain.delete elid=%2$s wwwdomain.delete.confirm elid=%2$s sok=ok ; " +
                 "elif [ -d /usr/local/mgr5 ]; " +
                 "then /usr/local/mgr5/sbin/mgrctl -m ispmgr webdomain.delete elid=%2$s webdomain.delete.confirm elid=%2$s sok=ok ; else echo no_panel; fi 2>&1";
+
+        private static final String UPLOAD_FILE_PATH = " if [ -d /usr/local/vesta ]; " +
+                "then echo '/home/%s/web/%s/public_html/'; " +
+                "elif [ -d /usr/local/ispmgr ]; " +
+                "then echo '/var/www/%s/%s/' ; " +
+                "elif [ -d /usr/local/mgr5 ]; " +
+                "then echo '/var/www/%s/%s/' ; " +
+                "else echo no_panel";
     }
 }
