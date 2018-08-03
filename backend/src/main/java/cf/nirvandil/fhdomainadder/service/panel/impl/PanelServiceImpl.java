@@ -55,6 +55,7 @@ public class PanelServiceImpl implements PanelService {
             throw new PanelDoesNotExistException();
         }
         log.info("Found users [{}]", output);
+        channel.disconnect();
         return output;
     }
 
@@ -83,6 +84,7 @@ public class PanelServiceImpl implements PanelService {
             log.info("Create domain output: [{}]", output);
         }
         Thread.sleep(300);
+        channel.disconnect();
         return output.toString();
     }
 
@@ -109,6 +111,7 @@ public class PanelServiceImpl implements PanelService {
         channel.connect();
         List<String> output = getOutput(reader);
         String answer = output.get(0);
+        channel.disconnect();
         if (answer.equals(NO_PANEL_ANSWER)) {
             throw new PanelDoesNotExistException();
         }
@@ -199,6 +202,7 @@ public class PanelServiceImpl implements PanelService {
         channel.connect();
         List<String> output = getOutput(reader);
         log.debug("Received output is {}", output);
+        channel.disconnect();
         if (output.size() == 1) return output.get(0);
         return output.toString();
     }
