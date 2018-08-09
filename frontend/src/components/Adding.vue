@@ -121,7 +121,7 @@
             toPanel: true,
             apiKey: '',
             email: '',
-            jumpStart: true,
+            jumpStart: false,
             ip: '',
             port: null,
             password: '',
@@ -254,13 +254,13 @@
                                         console.log(recordCreationRequest)
                                         const answer = await AXIOS.post(`/cf/zone/${zoneId}`, recordCreationRequest)
                                         if (!answer.data.success) {
-                                            answer.data.errors.map((err) => this.output.push(`<strong>CloudFlare response: ${domain}</strong> record ${record} error ${err.code} ${err.message}`))
+                                            answer.data.errors.map((err) => this.output.push(`<strong>CloudFlare response: ${domain}</strong> record ${record} <span style="color:red"> error ${err.code} ${err.message} </span>`))
                                         }
                                     })
                                 }
                             } else {
                                 result.data.errors.map(error => {
-                                    this.output.push(`<strong>CloudFlare response: ${domain}</strong> ${error.code} ${error.message}`)
+                                    this.output.push(`<strong>CloudFlare response: ${domain}</strong> <span style="color:red">${error.code} ${error.message} </span>`)
                                 })
                             }
                         } catch (err) {
