@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 /**
- * Entry point for interactions with pane on the server.
+ * Entry point for interactions with panel on the server.
  */
 @Slf4j
 @RestController
