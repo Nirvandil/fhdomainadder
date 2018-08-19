@@ -5,6 +5,9 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+/**
+ * Represents response for after sending {@link RecordCreationRequest}.
+ */
 @Data
 @ToString(callSuper = true)
 @NoArgsConstructor

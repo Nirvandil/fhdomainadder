@@ -4,6 +4,9 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * Request for creating domain on server through panel API.
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

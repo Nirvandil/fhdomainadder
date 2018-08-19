@@ -16,6 +16,9 @@ import org.springframework.web.client.RestTemplate;
 import java.util.Collection;
 import java.util.Collections;
 
+/**
+ * Straightforward RestTemplate implementation for {@link CfApiClient}
+ */
 @Service
 public class CfApiClientImpl implements CfApiClient {
     @Value("${cloud.api.url}")

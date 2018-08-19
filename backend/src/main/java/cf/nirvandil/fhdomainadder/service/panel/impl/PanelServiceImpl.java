@@ -1,46 +1,35 @@
 package cf.nirvandil.fhdomainadder.service.panel.impl;
 
-import cf.nirvandil.fhdomainadder.errors.CgiNotSupportedException;
-import cf.nirvandil.fhdomainadder.errors.HostNotAllowedException;
-import cf.nirvandil.fhdomainadder.errors.NoSuchUsersException;
-import cf.nirvandil.fhdomainadder.errors.PanelDoesNotExistException;
-import cf.nirvandil.fhdomainadder.model.panel.CheckCgiRequest;
-import cf.nirvandil.fhdomainadder.model.panel.ConnectionDetails;
-import cf.nirvandil.fhdomainadder.model.panel.DomainCreationRequest;
-import cf.nirvandil.fhdomainadder.model.panel.YesNo;
+import cf.nirvandil.fhdomainadder.errors.*;
+import cf.nirvandil.fhdomainadder.model.panel.*;
 import cf.nirvandil.fhdomainadder.service.panel.IpTester;
 import cf.nirvandil.fhdomainadder.service.panel.PanelService;
-import com.jcraft.jsch.ChannelExec;
-import com.jcraft.jsch.JSch;
-import com.jcraft.jsch.Session;
+import com.jcraft.jsch.*;
+import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
+import java.io.*;
+import java.util.*;
 
 import static java.lang.String.format;
 import static java.util.Arrays.asList;
 
+/**
+ * Implementation of {@link PanelService}, uses JSch for interactions with panel on server.
+ */
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class PanelServiceImpl implements PanelService {
 
+    private static final String NO_PANEL_ANSWER = "no_panel";
+    private static final int TEN_SECONDS_TIMEOUT = 10_000;
+    private static final int DELAY_BETWEEN_INTERACTIONS = 300;
     private final JSch jSch;
     private final IpTester ipTester;
-
-    @Autowired
-    public PanelServiceImpl(JSch jSch, IpTester ipTester) {
-        this.jSch = jSch;
-        this.ipTester = ipTester;
-    }
 
     @Override
     @SneakyThrows
@@ -60,6 +49,7 @@ public class PanelServiceImpl implements PanelService {
             throw new PanelDoesNotExistException();
         }
         log.info("Found users [{}]", output);
+        channel.disconnect();
         return output;
     }
 
@@ -82,12 +72,13 @@ public class PanelServiceImpl implements PanelService {
             if (StringUtils.isEmpty(output.get(0))) {
                 throw new NoSuchUsersException();
             }
-            if (output.get(0).equals("no_panel")) {
+            if (output.get(0).equals(NO_PANEL_ANSWER)) {
                 throw new PanelDoesNotExistException();
             }
-            log.info("Create domain output: [{}]", output);
+            log.debug("Create domain output: [{}]", output);
         }
-        Thread.sleep(300);
+        Thread.sleep(DELAY_BETWEEN_INTERACTIONS);
+        channel.disconnect();
         return output.toString();
     }
 
@@ -97,6 +88,7 @@ public class PanelServiceImpl implements PanelService {
         while ((line = reader.readLine()) != null) {
             output.addAll(asList(line.trim().split(" ")));
         }
+        reader.close();
         return output;
     }
 
@@ -113,7 +105,8 @@ public class PanelServiceImpl implements PanelService {
         channel.connect();
         List<String> output = getOutput(reader);
         String answer = output.get(0);
-        if (answer.equals("no_panel")) {
+        channel.disconnect();
+        if (answer.equals(NO_PANEL_ANSWER)) {
             throw new PanelDoesNotExistException();
         }
         log.info(YesNo.valueOf(answer).name());
@@ -126,21 +119,17 @@ public class PanelServiceImpl implements PanelService {
     public String deleteDomain(DomainCreationRequest request) {
         ConnectionDetails connectionDetails = request.getConnectionDetails();
         String user = request.getUserName();
-        ChannelExec channel = createChannel(connectionDetails);
         String command = format(Commands.REMOVE_DOMAIN, user, request.getDomain());
         log.info("DELETE domain command is:\n {}", command);
-        BufferedReader reader = new BufferedReader(new InputStreamReader(channel.getInputStream()));
-        channel.setCommand(command);
-        channel.connect();
-        List<String> output = getOutput(reader);
+        String output = getCommandOutput(connectionDetails, command);
         if (!output.isEmpty()) {
-            if (output.get(0).equals("no_panel")) {
+            if (output.equals(NO_PANEL_ANSWER)) {
                 throw new PanelDoesNotExistException();
             }
             log.info("Delete domain output: [{}]", output);
         }
         Thread.sleep(300);
-        return output.toString();
+        return output;
     }
 
     @SneakyThrows
@@ -151,8 +140,22 @@ public class PanelServiceImpl implements PanelService {
         config.put("PreferredAuthentications", "password");
         session.setConfig(config);
         session.setPassword(details.getPassword());
-        session.connect();
+        session.connect(TEN_SECONDS_TIMEOUT);
         return (ChannelExec) session.openChannel("exec");
+    }
+
+    @SneakyThrows
+    private String getCommandOutput(ConnectionDetails details, String command) {
+        log.debug("Received request for getting command output for command\n {} with connection details\n {}", command, details);
+        ChannelExec channel = createChannel(details);
+        BufferedReader reader = new BufferedReader(new InputStreamReader(channel.getInputStream()));
+        channel.setCommand(command);
+        channel.connect();
+        List<String> output = getOutput(reader);
+        log.debug("Received output is {}", output);
+        channel.disconnect();
+        if (output.size() == 1) return output.get(0);
+        return output.toString();
     }
 
     private static class Commands {

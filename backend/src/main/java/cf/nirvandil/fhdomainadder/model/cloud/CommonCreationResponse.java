@@ -6,6 +6,9 @@ import lombok.NoArgsConstructor;
 
 import java.util.List;
 
+/**
+ * Represents abstract Cloudflare response.
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -15,6 +18,9 @@ abstract class CommonCreationResponse {
     private List<String> messages;
 }
 
+/**
+ * Description of Cloudflare reported error.
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

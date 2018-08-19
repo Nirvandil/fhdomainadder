@@ -4,6 +4,9 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * Contains all data, that need for connect to an server through SSH protocol.
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

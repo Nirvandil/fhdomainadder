@@ -9,6 +9,9 @@ import lombok.ToString;
 
 import java.util.List;
 
+/**
+ * Represents response after sending {@link ZoneCreationRequest}.
+ */
 @Data
 @ToString(callSuper = true)
 @NoArgsConstructor
@@ -18,6 +21,9 @@ public class ZoneCreationResponse extends CommonCreationResponse {
     private ZoneCreationResult result;
 }
 
+/**
+ * Describes name servers, assigned to created zone by Cloudflare.
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

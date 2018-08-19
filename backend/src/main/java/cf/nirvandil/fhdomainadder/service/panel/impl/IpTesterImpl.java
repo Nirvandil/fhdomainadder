@@ -4,6 +4,10 @@ import cf.nirvandil.fhdomainadder.service.panel.IpTester;
 import org.apache.commons.net.util.SubnetUtils;
 import org.springframework.stereotype.Component;
 
+/**
+ * Implementation of {@link IpTester}, that checks given IP for belonging to specific subnet.
+ * Based on apache {@link SubnetUtils}.
+ */
 @Component
 public class IpTesterImpl implements IpTester {
     private String[] ourNets = {

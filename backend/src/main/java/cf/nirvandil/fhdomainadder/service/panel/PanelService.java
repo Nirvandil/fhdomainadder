@@ -7,6 +7,9 @@ import cf.nirvandil.fhdomainadder.model.panel.YesNo;
 
 import java.util.List;
 
+/**
+ * Describes interactions with panel on the server.
+ */
 public interface PanelService {
     List<String> getUsers(ConnectionDetails connectionDetails);
 

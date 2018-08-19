@@ -5,6 +5,10 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * Represents request for creating DNS zone record.
+ * @see <a href=https://api.cloudflare.com/#zone-create-zone>Cloudflare API</a>
+ */
 @Data
 @Builder
 @NoArgsConstructor
