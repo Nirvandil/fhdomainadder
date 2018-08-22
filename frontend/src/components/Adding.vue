@@ -200,7 +200,6 @@
                     this.output
             },
             sendRequest: function () {
-                console.log(`File: ${this.indexFile}`)
                 this.progressCf = 0
                 this.progressPanel = 0
                 const domains = this.domains.split(/[ ,\n]+/)
@@ -210,6 +209,7 @@
                     this.buttonDisabled = false
                     return
                 }
+                const total = domains.length
                 let stop = false
                 domains.map(domain => {
                     if (!/.*[a-zA-Z0-9-]+\.[a-zA-Z0-9-]{2,}/.test(domain)) {
@@ -267,7 +267,7 @@
                             this.showAlert(err.response.data.message)
                         }
                         this.buttonDisabled = false
-                        this.progressCf += 100 / domains.length
+                        this.progressCf += 100 / total
                     })
                 }
                 const sendGetPanelUsersRequest = async () => {
