@@ -18,7 +18,9 @@ public class CfApiClientImpl implements CfApiClient {
     private final RestTemplate restTemplate;
 
     @Override
+    @SneakyThrows
     public ZoneCreationResponse createDomain(ZoneCreationRequest creationRequest) {
+        Thread.sleep(300); // throttling.
         HttpHeaders headers = createHeaders(creationRequest.getApiKey(), creationRequest.getEmail());
         HttpEntity<ZoneCreationRequest> request = new HttpEntity<>(creationRequest, headers);
         return restTemplate.postForObject(CF_API_ENDPOINT + "zones", request, ZoneCreationResponse.class);
@@ -27,7 +29,7 @@ public class CfApiClientImpl implements CfApiClient {
     @Override
     @SneakyThrows
     public RecordCreationResponse createRecord(RecordCreationRequest creationRequest, String zoneId) {
-        Thread.sleep(3_000); // workaround: get time for Cloudflare to detect zone.
+        Thread.sleep(300); // workaround: get time for Cloudflare to detect zone.
         String url = CF_API_ENDPOINT + "zones/" + zoneId + "/dns_records";
         HttpHeaders headers = createHeaders(creationRequest.getApiKey(), creationRequest.getEmail());
         HttpEntity<RecordCreationRequest> request = new HttpEntity<>(creationRequest, headers);

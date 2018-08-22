@@ -1,17 +1,10 @@
 package cf.nirvandil.fhdomainadder.web;
 
-import cf.nirvandil.fhdomainadder.model.cloud.RecordCreationRequest;
-import cf.nirvandil.fhdomainadder.model.cloud.RecordCreationResponse;
-import cf.nirvandil.fhdomainadder.model.cloud.ZoneCreationRequest;
-import cf.nirvandil.fhdomainadder.model.cloud.ZoneCreationResponse;
+import cf.nirvandil.fhdomainadder.model.cloud.*;
 import cf.nirvandil.fhdomainadder.service.cloud.CfApiClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @Slf4j
 @RestController
@@ -25,7 +18,7 @@ public class CfApiController {
     }
 
     @PostMapping("/zone")
-    public synchronized ZoneCreationResponse createZone(@RequestBody ZoneCreationRequest request) {
+    public ZoneCreationResponse createZone(@RequestBody ZoneCreationRequest request) {
         log.info(request.toString());
         ZoneCreationResponse response = cfApiClient.createDomain(request);
         log.info(response.toString());
@@ -33,7 +26,7 @@ public class CfApiController {
     }
 
     @PostMapping("/zone/{zoneId}")
-    public synchronized RecordCreationResponse createDnsRecord(@RequestBody RecordCreationRequest request, @PathVariable String zoneId) {
+    public RecordCreationResponse createDnsRecord(@RequestBody RecordCreationRequest request, @PathVariable String zoneId) {
         log.info(request.toString());
         RecordCreationResponse response = cfApiClient.createRecord(request, zoneId);
         log.info(response.toString());
