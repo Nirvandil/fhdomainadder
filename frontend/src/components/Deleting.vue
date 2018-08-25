@@ -50,75 +50,75 @@
 </template>
 
 <script>
-    import NavTabs from './NavTabs'
-    import {AXIOS} from './http-common'
+import NavTabs from './NavTabs'
+import { AXIOS } from './http-common'
 
-    export default {
-        name: 'deleting',
-        components: {NavTabs},
-        data () {
-            return {
-                form: {
-                    ip: '',
-                    port: 3333,
-                    password: ''
-                },
-                userName: '',
-                domains: '',
-                buttonDisabled: false,
-                alertOpen: false,
-                alertContent: '',
-                output: [],
-                progress: 0
-            }
-        },
-        methods: {
-            deleteDomains: function () {
-                this.output.length = 0
-                this.progress = 0
-                if (!this.domains || !this.form.ip || !this.form.port || !this.form.password || !this.userName) {
-                    this.alertContent = 'Необходимо заполнить обязательные поля!'
-                    this.alertOpen = true
-                } else {
-                    this.buttonDisabled = true
-                    const domains = this.domains.split(/[ ,\n]+/)
-                    let stop = false
-                    domains.map(domain => {
-                        if (!/.*[a-zA-Z0-9-]+\.[a-zA-Z0-9-]{2,}/.test(domain)) {
-                            this.alertContent = `Недопустимое доменное имя ${domain}`
-                            this.buttonDisabled = false
-                            this.alertOpen = true
-                            stop = true
-                        }
-                    })
-                    if (stop) {
-                        return
-                    }
-                    domains.map(doman =>
-                        AXIOS.post('/panel/delete', {
-                            connectionDetails: this.form,
-                            domain: doman,
-                            userName: this.userName
-                        })
-                            .then(res => {
-                                if (res.data) {
-                                    this.output.push(`PANEL response for ${doman}: ${res.data}`)
-                                } else {
-                                    this.output.push(`${doman} deleted (or never exists).`)
-                                }
-                                this.progress += 100 / domains.length
-                            })
-                            .catch(err => {
-                                this.alertOpen = true
-                                this.alertContent = err.toString()
-                                this.buttonDisabled = false
-                            })
-                    )
-                    this.buttonDisabled = false
-                }
-            }
-        }
+export default {
+  name: 'deleting',
+  components: {NavTabs},
+  data () {
+    return {
+      form: {
+        ip: '',
+        port: 22,
+        password: ''
+      },
+      userName: '',
+      domains: '',
+      buttonDisabled: false,
+      alertOpen: false,
+      alertContent: '',
+      output: [],
+      progress: 0
     }
+  },
+  methods: {
+    deleteDomains: function () {
+      this.output.length = 0
+      this.progress = 0
+      if (!this.domains || !this.form.ip || !this.form.port || !this.form.password || !this.userName) {
+        this.alertContent = 'Необходимо заполнить обязательные поля!'
+        this.alertOpen = true
+      } else {
+        this.buttonDisabled = true
+        const domains = this.domains.split(/[ ,\n]+/)
+        let stop = false
+        domains.map(domain => {
+          if (!/.*[a-zA-Z0-9-]+\.[a-zA-Z0-9-]{2,}/.test(domain)) {
+            this.alertContent = `Недопустимое доменное имя ${domain}`
+            this.buttonDisabled = false
+            this.alertOpen = true
+            stop = true
+          }
+        })
+        if (stop) {
+          return
+        }
+        domains.map(doman =>
+          AXIOS.post('/panel/delete', {
+            connectionDetails: this.form,
+            domain: doman,
+            userName: this.userName
+          })
+            .then(res => {
+              if (res.data) {
+                this.output.push(`PANEL response for ${doman}: ${res.data}`)
+              } else {
+                this.output.push(`${doman} deleted (or never exists).`)
+              }
+              this.progress += 100 / domains.length
+            })
+            .catch(err => {
+              this.alertOpen = true
+              this.alertContent = err.toString()
+              this.buttonDisabled = false
+            })
+        )
+        this.buttonDisabled = false
+      }
+    }
+  }
+}
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
@@ -138,7 +138,7 @@
     }
 
     .output {
-        width: 90%;
+        width: 42%;
         padding: 1.5em;
         margin-bottom: 0.5em
     }

@@ -6,10 +6,10 @@
 </template>
 
 <script>
-    export default {
-        name: 'NavTabs',
-        props: ['active']
-    }
+export default {
+  name: 'NavTabs',
+  props: ['active']
+}
 </script>
 
 <style scoped>

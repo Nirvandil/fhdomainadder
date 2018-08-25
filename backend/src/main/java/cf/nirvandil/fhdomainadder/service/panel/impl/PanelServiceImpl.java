@@ -101,17 +101,10 @@ public class PanelServiceImpl implements PanelService {
     @Override
     @SneakyThrows
     public YesNo checkCgi(CheckCgiRequest request) {
-        ConnectionDetails details = request.getConnectionDetails();
         String user = request.getUser();
-        ChannelExec channel = createChannel(details);
-        BufferedReader reader = new BufferedReader(new InputStreamReader(channel.getInputStream()));
         String command = format(Commands.CHECK_CGI, user);
         log.info(command);
-        channel.setCommand(command);
-        channel.connect();
-        List<String> output = getOutput(reader);
-        String answer = output.get(0);
-        channel.disconnect();
+        String answer = getCommandOutput(request.getConnectionDetails(), command);
         if (answer.equals(NO_PANEL_ANSWER)) {
             throw new PanelDoesNotExistException();
         }
