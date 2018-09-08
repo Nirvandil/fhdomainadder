@@ -3,6 +3,7 @@ package cf.nirvandil.fhdomainadder.service.panel.impl;
 import cf.nirvandil.fhdomainadder.service.panel.IpTester;
 import org.apache.commons.net.util.SubnetUtils;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 @Component
 public class FhIpTester implements IpTester {
@@ -30,8 +31,9 @@ public class FhIpTester implements IpTester {
 
     @Override
     public boolean isAllowedAddress(String ip) {
+        if (StringUtils.isEmpty(ip)) return false;
         for (final String subnet : ourNets) {
-            SubnetUtils.SubnetInfo subnetInfo = (new SubnetUtils(subnet)).getInfo();
+            SubnetUtils.SubnetInfo subnetInfo = new SubnetUtils(subnet).getInfo();
             if (subnetInfo.isInRange(ip))
                 return true;
         }
